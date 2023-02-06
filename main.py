@@ -49,7 +49,7 @@ else:
 #table.delete_self(client)
 
 print("Now filling the table")
-table.bulk_load_csv("shortlist_area.csv")
+#table.bulk_load_csv("shortlist_area.csv")
 
 print("Done")
 
