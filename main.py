@@ -3,9 +3,10 @@ import os
 import sys
 import pathlib
 import boto3
-
+import requests
+from tables import Table
 config = configparser.ConfigParser()
-config.read("S5-S3.conf")
+config.read("dynamoDB.conf")
 aws_access_key_id = config['default' ]['aws_access_key_id' ]
 aws_secret_access_key = config['default']['aws_secret_access_key']
 
@@ -16,13 +17,25 @@ try:
         aws_secret_access_key=aws_secret_access_key,
     )
 
-    s3 = session.client('s3')
-    s3_res = session.resource('s3')
-    print("Welcome to the AWS S3 Storage Shell(S5)")
-    print("You are now conneced to your S3 storage")
+    client_res = boto3.resource('dynamodb', region_name='ca-central-1', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+    client = boto3.client('dynamodb', region_name='ca-central-1', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+
+    # dynamo = session.client('dynamodb')
+    # dynamo_res = session.resource('dynamodb')
+    print("Welcome to the AWS DynamoDB Shell(D5)")
+    print("You are now conneced to your DB storage")
 
 except:
-    print("Welcome to the AWS S3 Storage Shell(S5)")
-    print("You could not be connected to your S3 storage")
-    print("Please review procedures for authenticating your account on AWS S3")
+    print("Welcome to the AWS DynamoDB Shell(D5)")
+    print("You are now conneced to your DB storage")
+    print("Error: Please review procedures for authenticating your account on AWS DynamoDB")
     quit()
+
+
+print("creating a table")
+table = Table(client_res, 'test_table')
+
+print("Now deleting the table")
+table.delete_self(client)
+print("Done")
+
