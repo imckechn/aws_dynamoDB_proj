@@ -7,7 +7,7 @@ import requests
 from tables import Table
 config = configparser.ConfigParser()
 config.read("dynamoDB.conf")
-aws_access_key_id = config['default' ]['aws_access_key_id' ]
+aws_access_key_id = config['default']['aws_access_key_id']
 aws_secret_access_key = config['default']['aws_secret_access_key']
 
 #Try making a connection to S3 using boto3
@@ -33,7 +33,7 @@ except:
 
 
 print("creating a table")
-table = Table(client_res, 'test_table')
+table = Table(client_res, 'test_table', "Name", "String", "Age", "Number")
 
 print("Now deleting the table")
 table.delete_self(client)
