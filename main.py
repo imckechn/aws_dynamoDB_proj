@@ -5,6 +5,7 @@ import pathlib
 import boto3
 import requests
 from tables import Table
+import asyncio
 config = configparser.ConfigParser()
 config.read("dynamoDB.conf")
 aws_access_key_id = config['default']['aws_access_key_id']
@@ -32,10 +33,23 @@ except:
     quit()
 
 
-print("creating a table")
-table = Table(client_res, 'test_table', "Name", "String", "Age", "Number")
+# Check if the tables exist
+existing_tables = client.list_tables()
 
-print("Now deleting the table")
-table.delete_self(client)
+if "test_table" in existing_tables['TableNames']:
+    print("Table already exists")
+    table = Table("test_table")
+    table.loadTable(client_res)
+
+else:
+    print("creating a table")
+    table = Table('test_table')
+    table.create(client_res, "ISO3", "S", "Country Name", "S")
+
+#table.delete_self(client)
+
+print("Now filling the table")
+table.bulk_load_csv("shortlist_area.csv")
+
 print("Done")
 
