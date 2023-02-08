@@ -37,17 +37,20 @@ except:
 existing_tables = client.list_tables()
 tables = []
 
-print("Existing Tables:")
 for tableName in existing_tables["TableNames"]:
     table = Table(tableName)
     table.loadTable(client_res)
     tables.append(table)
-    print(tableName)
 
 print()
 while(True):
     print("Please enter a command")
-    print("Commands: create, delete, print, print head bulkload, exit, add row, delete row")
+    print("Commands: create, delete, print, print head, bulkload, exit, add row, delete row")
+    print("Current Tables: ", end="")
+    for table in tables:
+        print(table.get_name(), end=" ")
+    print()
+
     command = input()
 
     if command[:4] == "exit":
@@ -58,12 +61,26 @@ while(True):
         name = input("Table name?" )
         attyA = input("Attribute A? ")
         attyAType = input("Attribute A data type (Number or String)? ")
+        attyAType = attyAType.upper()
+        attyAType = attyAType[0]
+        if attyAType != "N" and attyAType != "S":
+            print("Invalid data type")
+            continue
+
         attyB = input("Attribute B? ")
         attyBType = input("Attribute B data type (Number or String)? ")
+        attyBType = attyBType.upper()
+        attyBType = attyBType[0]
+        if attyBType != "N" and attyBType != "S":
+            print("Invalid data type")
+            continue
+
         table = Table(name)
         success = table.create(client_res, attyA, attyAType, attyB, attyBType)
+
         if success:
             tables.append(table)
+            print("Table created")
 
 
     elif command[:len("bulkload")] == "bulkload":
@@ -149,10 +166,10 @@ while(True):
         nameFound = False
         for table in tables:
             if table.get_name() == name:
-                table = Table(name)
+                nameFound = True
                 ans = table.delete_self(client)
                 if ans:
-                    tables.remove(name)
+                    tables.remove(table)
                     print("Table removed")
 
         if not nameFound:

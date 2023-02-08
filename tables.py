@@ -17,7 +17,7 @@ class Table:
     # attributeAKeyType: the key type of the first attribute
     # attributeB: the second attribute
     # attributeBKeyType: the key type of the second attribute
-    def create(self, dynamo, attributeA, attributeAKeyType, attributeB, attributeBKeyType):
+    async def create(self, dynamo, attributeA, attributeAKeyType, attributeB, attributeBKeyType):
         #self.table = dynamo.Table(name)
         try:
             self.table = dynamo.create_table(
@@ -84,45 +84,65 @@ class Table:
     # It takes in the following parameters:
     # csv_file_name: the name of the csv file
     def bulk_load_csv(self, csv_file_name):
-        records = json.loads(pd.read_csv(csv_file_name).to_json(orient='records'))
+        try:
+            records = json.loads(pd.read_csv(csv_file_name).to_json(orient='records'))
 
-        self.column_headers = records[0].keys()
+            self.column_headers = records[0].keys()
 
-        for record in records:
-            items = {}
-            for key in self.column_headers:
-                items[key] = record[key]
+            for record in records:
+                items = {}
+                for key in self.column_headers:
+                    if type(record[key]) == float:
+                        items[key] = int(record[key])
+                    else:
+                        print(key, record[key])
+                        items[key] = record[key]
 
-            self.table.put_item(
-                Item = items
-            )
+                self.table.put_item(
+                    Item = items
+                )
+
+            return True
+        except Exception as e:
+            print("Error: ", e)
+            return False
 
 
     # Adds an item to the table
     # It takes in the following parameters:
     # item: the item to add which is all the rows in the table, seperated by commas
     def add_row(self, item):
+        try:
+            counter = 0
+            table_row = {}
+            for key in self.column_headers:
+                if item[counter].isdigit():
+                    table_row[key] = int(item[counter])
+                else:
+                    table_row[key] = item[counter]
+                counter += 1
 
-        counter = 0
-        table_row = {}
-        for key in self.column_headers:
-            table_row[key] = item[0]
-            counter += 1
+            self.table.put_item(
+                Item = table_row
+            )
 
-        self.table.put_item(
-            Item = table_row
-        )
-
+            return True
+        except Exception as e:
+            print("Error: ", e)
+            return False
 
     # Deletes an item fro the table
     # It takes in the following parameters:
     # item: the item to delete which is all the rows in the table, seperated by commas
-    def delet_row(self, item):
+    def delete_row(self, item):
 
         counter = 0
         table_row = {}
         for key in self.column_headers:
-            table_row[key] = item[0]
+            if item[counter].isdigit():
+                table_row[key] = int(item[counter])
+            else:
+                table_row[key] = item[counter]
             counter += 1
 
         self.table.delete_item(
