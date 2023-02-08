@@ -45,7 +45,7 @@ for tableName in existing_tables["TableNames"]:
 print()
 while(True):
     print("Please enter a command")
-    print("Commands: create, delete, print, print head, bulkload, exit, add row, delete row")
+    print("Commands: create, delete, print, print head, bulkload, exit, add row, delete row, update record")
     print("Current Tables: ", end="")
     for table in tables:
         print(table.get_name(), end=" ")
@@ -163,7 +163,6 @@ while(True):
         if not nameFound:
             print("Failed to find a table with that name")
 
-
     elif command[:len("delete row")] == "delete row":
         tableName = input("Table name? ")
         nameFound = False
@@ -183,7 +182,6 @@ while(True):
         if not nameFound:
             print("Failed to find a table with that name")
 
-
     elif command[:len("delete")] == "delete":
         name = input("Table name? ")
         nameFound = False
@@ -197,3 +195,59 @@ while(True):
 
         if not nameFound:
             print("Failed to find a table with that name")
+
+    elif command[:len("update record")] == "update record":
+        name = input("Table name? ")
+        nameFound = False
+        for table in tables:
+            if table.get_name() == name:
+                nameFound = True
+
+                #load the table and turn it into a pandas dataframe
+                df = table.get_table_as_pd_df()
+                print(df)
+
+                row = input("Enter the row number you want to update: ")
+                if row.isdigit():
+                    row = int(row)
+
+                else:
+                    print("Please give a valid row number (integer)")
+                    continue
+
+                if row > len(df.index):
+                    print("Please give a valid row number")
+                    continue
+
+                print("Row selected = ", df.iloc[row])
+
+                column = input("Enter the column name you want to update: ")
+
+                if column in df.columns:
+                    print("Column selected = ", column)
+                    print("Current value = ", df.iloc[row][column])
+                    new_value = input("Enter the new value: ")
+
+                    if new_value.isdigit():
+                        new_value = int(new_value)
+
+                    else:
+                        new_value = str(new_value)
+
+                    df.at[row, column] = new_value
+                    print("New value = ", df.iloc[row][column])
+
+                    #update the table
+                    table.update_table_from_pd_df(df, row, column, new_value)
+
+        if not nameFound:
+            print("Failed to find a table with that name")
+
+    #elif command[:len("add column")] == "add column":
+
+    #elif command[:len("query")] == "query":
+
+        #Get table names from user
+
+
+        #Get the query

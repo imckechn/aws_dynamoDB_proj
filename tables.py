@@ -168,7 +168,6 @@ class Table:
             return
 
         header = rows[0].keys()
-        print("Header: ", header)
         for elem in header:
             print(elem, end=", ")
 
@@ -204,3 +203,42 @@ class Table:
                 print(row[key], end=", ")
             print()
             i += 1
+
+    def get_table_as_pd_df(self):
+        rows =  self.table.scan()['Items']
+
+        if not rows:
+            print("No rows in table")
+            return
+
+        header = rows[0].keys()
+        df = pd.DataFrame(columns=header)
+
+        for row in rows:
+            df = df.append(row, ignore_index=True)
+
+        return df
+
+    def update_table_from_pd_df(self, df, row_id, column_name, new_value):
+
+        print("Row id: ", row_id)
+        print("Column name: ", column_name)
+        print("New value: ", new_value)
+
+        print("A, ", df.columns[0])
+        print("iloc, ", df.iloc[row_id])
+        print("B, ", df.iloc[row_id][column_name])
+        print("C, ", df.at[row_id, column_name])
+
+        response = self.table.update_item(
+            TableName=self.name,
+            Key={
+                self.column_headers[0]: df.iloc[row_id][column_name],
+            },
+            UpdateExpression=f'SET {column_name} = :{new_value}',
+            ConditionExpression='attribute_not_exists(deletedAt)', # Do not update if deleted
+            ExpressionAttributeValues={
+                ':newCountry': "Canada"
+            },
+            ReturnValues="UPDATED_NEW"
+        )
