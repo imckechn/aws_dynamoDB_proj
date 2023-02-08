@@ -113,17 +113,19 @@ class Table:
     # item: the item to add which is all the rows in the table, seperated by commas
     def add_row(self, item):
         try:
-            counter = 0
-            table_row = {}
-            for key in self.column_headers:
-                if item[counter].isdigit():
-                    table_row[key] = int(item[counter])
-                else:
-                    table_row[key] = item[counter]
-                counter += 1
+            # counter = 0
+            # table_row = {}
+            # for key in self.column_headers:
+            #     if item[counter].isdigit():
+            #         table_row[key] = int(item[counter])
+            #     else:
+            #         table_row[key] = item[counter]
+            #     counter += 1
+
+            print("Item: ", item)
 
             self.table.put_item(
-                Item = table_row
+                Item = item
             )
 
             return True
@@ -161,14 +163,24 @@ class Table:
     def print_all_rows(self):
         rows =  self.table.scan()['Items']
 
+        if not rows:
+            print("No rows in table")
+            return
+
         header = rows[0].keys()
+        print("Header: ", header)
         for elem in header:
             print(elem, end=", ")
 
         print()
         for row in rows:
             for key in header:
-                print(row[key], end=", ")
+
+                #This try catch is to handle the case where a row has a null value
+                try:
+                    print(row[key], end=", ")
+                except Exception as e:
+                    continue
             print()
 
 

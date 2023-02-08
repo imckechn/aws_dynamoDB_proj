@@ -82,7 +82,6 @@ while(True):
             tables.append(table)
             print("Table created")
 
-
     elif command[:len("bulkload")] == "bulkload":
         name = input("Table name? ")
 
@@ -128,11 +127,35 @@ while(True):
             if table.get_name() == tableName:
                 nameFound = True
                 columns = table.get_column_headers()
-                data = []
+                data = {}
 
                 for column in columns:
                     dat = input("Enter data for column '" + column + "': ")
-                    data.append(dat)
+
+                    if dat.isdigit():
+                        dat = int(dat)
+                    else:
+                        dat = str(dat)
+                    data[column] = dat
+
+                moreColumns = input("Add another column value? (y/n) ")
+                while moreColumns == "y":
+                    column = input("Column name? ")
+
+                    if column in data.keys():
+                        print("Column value already given")
+                        continue
+
+                    dat = input("Enter data for column '" + column + "': ")
+
+                    if dat.isdigit():
+                        dat = int(dat)
+                    else:
+                        dat = str(dat)
+
+                    data[column] = dat
+
+                    moreColumns = input("Add another column value? (y/n) ")
 
                 table.add_row(data)
                 break
