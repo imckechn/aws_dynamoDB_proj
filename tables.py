@@ -112,18 +112,8 @@ class Table:
     # It takes in the following parameters:
     # item: the item to add which is all the rows in the table, seperated by commas
     def add_row(self, item):
+
         try:
-            # counter = 0
-            # table_row = {}
-            # for key in self.column_headers:
-            #     if item[counter].isdigit():
-            #         table_row[key] = int(item[counter])
-            #     else:
-            #         table_row[key] = item[counter]
-            #     counter += 1
-
-            print("Item: ", item)
-
             self.table.put_item(
                 Item = item
             )
@@ -225,10 +215,9 @@ class Table:
         return df
 
     def update_table_from_pd_df(self, df, row_id, column_name, new_value):
-
         row = df.iloc[row_id]
 
-        columns = self.table.get_column_headers()
+        columns = self.get_column_headers()
         oldData = []
 
         for column in columns:
@@ -242,41 +231,3 @@ class Table:
             newData[column] = df.at[row_id, column]
 
         self.add_row(newData)
-        return
-
-        # print("Row id: ", row_id)
-        # print("Column name: ", column_name)
-        # print("New value: ", new_value)
-
-        # print("A, ", self.column_headers[0])
-        # print("iloc, ", df.iloc[row_id])
-        # print("B, ", df.iloc[row_id][column_name])
-        # print("C, ", df.at[row_id, column_name])
-
-        # # self.table.update_item(
-        # #     Key={'pkey': 'asdf12345'},
-        # #     AttributeUpdates={
-        # #         'status': 'complete',
-        # #     },
-        # # )
-        # self.table.update_item(
-        #     Key={column_name: 'Ya mum'},
-        #     AttributeUpdates={
-        #         'Ya mum': 'ya dad',
-        #     },
-        # )
-
-
-
-        # response = self.table.update_item(
-        #     TableName=self.name,
-        #     Key={
-        #         column_name: new_value,
-        #     },
-        #     UpdateExpression=f'SET {column_name} = :{new_value}',
-        #     ConditionExpression='attribute_not_exists(deletedAt)', # Do not update if deleted
-        #     ExpressionAttributeValues={
-        #         ':newCountry': "Canada"
-        #     },
-        #     ReturnValues="UPDATED_NEW"
-        # )

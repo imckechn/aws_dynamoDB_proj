@@ -154,7 +154,6 @@ while(True):
                         dat = str(dat)
 
                     data[column] = dat
-
                     moreColumns = input("Add another column value? (y/n) ")
 
                 table.add_row(data)
