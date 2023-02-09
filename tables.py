@@ -138,18 +138,23 @@ class Table:
     # item: the item to delete which is all the rows in the table, seperated by commas
     def delete_row(self, item):
 
+        print("Item: ", item)
+
         counter = 0
         table_row = {}
         for key in self.column_headers:
-            if item[counter].isdigit():
-                table_row[key] = int(item[counter])
+            elem = str(item[counter])
+            if elem.isdigit():
+                table_row[key] = int(elem)
             else:
-                table_row[key] = item[counter]
+                table_row[key] = elem
             counter += 1
 
-        self.table.delete_item(
+        ans = self.table.delete_item(
             Key = table_row
         )
+
+        print(ans)
 
 
     def get_name(self):
@@ -221,24 +226,57 @@ class Table:
 
     def update_table_from_pd_df(self, df, row_id, column_name, new_value):
 
-        print("Row id: ", row_id)
-        print("Column name: ", column_name)
-        print("New value: ", new_value)
+        row = df.iloc[row_id]
 
-        print("A, ", df.columns[0])
-        print("iloc, ", df.iloc[row_id])
-        print("B, ", df.iloc[row_id][column_name])
-        print("C, ", df.at[row_id, column_name])
+        columns = self.table.get_column_headers()
+        oldData = []
 
-        response = self.table.update_item(
-            TableName=self.name,
-            Key={
-                self.column_headers[0]: df.iloc[row_id][column_name],
-            },
-            UpdateExpression=f'SET {column_name} = :{new_value}',
-            ConditionExpression='attribute_not_exists(deletedAt)', # Do not update if deleted
-            ExpressionAttributeValues={
-                ':newCountry': "Canada"
-            },
-            ReturnValues="UPDATED_NEW"
-        )
+        for column in columns:
+            oldData.append(row[column])
+
+        self.delete_row(oldData)
+
+        newData = {}
+        df.at[row_id, column_name] = new_value
+        for column in df.columns:
+            newData[column] = df.at[row_id, column]
+
+        self.add_row(newData)
+        return
+
+        # print("Row id: ", row_id)
+        # print("Column name: ", column_name)
+        # print("New value: ", new_value)
+
+        # print("A, ", self.column_headers[0])
+        # print("iloc, ", df.iloc[row_id])
+        # print("B, ", df.iloc[row_id][column_name])
+        # print("C, ", df.at[row_id, column_name])
+
+        # # self.table.update_item(
+        # #     Key={'pkey': 'asdf12345'},
+        # #     AttributeUpdates={
+        # #         'status': 'complete',
+        # #     },
+        # # )
+        # self.table.update_item(
+        #     Key={column_name: 'Ya mum'},
+        #     AttributeUpdates={
+        #         'Ya mum': 'ya dad',
+        #     },
+        # )
+
+
+
+        # response = self.table.update_item(
+        #     TableName=self.name,
+        #     Key={
+        #         column_name: new_value,
+        #     },
+        #     UpdateExpression=f'SET {column_name} = :{new_value}',
+        #     ConditionExpression='attribute_not_exists(deletedAt)', # Do not update if deleted
+        #     ExpressionAttributeValues={
+        #         ':newCountry': "Canada"
+        #     },
+        #     ReturnValues="UPDATED_NEW"
+        # )

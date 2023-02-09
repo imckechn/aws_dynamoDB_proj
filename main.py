@@ -234,7 +234,7 @@ while(True):
                     else:
                         new_value = str(new_value)
 
-                    df.at[row, column] = new_value
+                    #df.at[row, column] = new_value
                     print("New value = ", df.iloc[row][column])
 
                     #update the table
