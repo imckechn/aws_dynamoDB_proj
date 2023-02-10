@@ -2,6 +2,7 @@ import pandas as pd
 import json
 import boto3
 import asyncio
+import os
 
 class Table:
 
@@ -17,8 +18,8 @@ class Table:
     # attributeAKeyType: the key type of the first attribute
     # attributeB: the second attribute
     # attributeBKeyType: the key type of the second attribute
-    async def create(self, dynamo, attributeA, attributeAKeyType, attributeB, attributeBKeyType):
-        #self.table = dynamo.Table(name)
+    def create(self, dynamo, attributeA, attributeAKeyType, attributeB, attributeBKeyType):
+
         try:
             self.table = dynamo.create_table(
                 TableName = self.name,
@@ -48,6 +49,7 @@ class Table:
                 }
             )
             print("Table Status: ", self.table.table_status, self.table.table_name)
+            return True
         except Exception as e:
             print("Error: ", e)
 
@@ -67,6 +69,7 @@ class Table:
 
         except Exception as e:
             print("Error: ", e)
+
 
     # This function deletes a table from DynamoDB
     # It takes in the following parameters:
@@ -95,7 +98,6 @@ class Table:
                     if type(record[key]) == float:
                         items[key] = int(record[key])
                     else:
-                        print(key, record[key])
                         items[key] = record[key]
 
                 self.table.put_item(
@@ -144,8 +146,6 @@ class Table:
             Key = table_row
         )
 
-        print(ans)
-
 
     def get_name(self):
         return self.name
@@ -179,7 +179,6 @@ class Table:
 
 
     def print_head(self):
-        print("Printing head")
         rows =  self.table.scan()['Items']
 
         header = rows[0].keys()

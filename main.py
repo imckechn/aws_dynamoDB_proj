@@ -83,7 +83,7 @@ while(True):
             print("Table created")
 
     elif command[:len("bulkload")] == "bulkload":
-        name = input("Table name? ")
+        tableName = input("Table name? ")
 
         nameFound = False
         for table in tables:
