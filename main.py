@@ -5,7 +5,15 @@ import pathlib
 import boto3
 import requests
 from tables import Table
+import pandas as pd
 import asyncio
+import reportlab
+from reportlab.pdfgen import canvas
+from reportlab.platypus import SimpleDocTemplate, TableStyle
+from reportlab.platypus import Table as Tbl
+from reportlab.platypus import Paragraph
+
+
 config = configparser.ConfigParser()
 config.read("dynamoDB.conf")
 aws_access_key_id = config['default']['aws_access_key_id']
@@ -242,11 +250,118 @@ while(True):
         if not nameFound:
             print("Failed to find a table with that name")
 
-    #elif command[:len("add column")] == "add column":
+    elif command[:len("A")] == "A":
+        elements = []
+        countryName = input("Country name? ")
 
-    #elif command[:len("query")] == "query":
+        doc = SimpleDocTemplate("pdfs/" + "hello.pdf")
+        header1 = Paragraph("Name of Country")
+        header2 = Paragraph(countryName)
+        elements.append(header1)
+        elements.append(header2)
 
-        #Get table names from user
+
+        #Get the area of the country
+        for table in tables:
+            if table.get_name() == "Area":
+                df = table.get_table_as_pd_df()
+                area = df.loc[df['Country Name'] == countryName, "Area"].iloc[0]
+                break
+
+        # Get the Official Languages of the country
+        for table in tables:
+            if table.get_name() == "capitals":
+                df = table.get_table_as_pd_df()
+                capital = df.loc[df['Country Name'] == countryName, "Capital"].iloc[0]
+                break
+
+        # Get the Capital of the country
+        for table in tables:
+            if table.get_name() == "official_languages":
+                df = table.get_table_as_pd_df()
+                languages = df.loc[df['Country Name'] == countryName, "Languages"].iloc[0]
+                break
+
+        title = [["Area: " + str(area) + " sq km"],
+                ["Offical/National Languages: " + languages],
+                ["Capital City: " + capital]]
+        t = Tbl(title)
+        t.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, (0, 0, 0)),
+                                        ('BOX', (0, 0), (-1, -1), 0.25, (0, 0, 0))]))
+
+        elements.append(t)
+
+        # Getting the Population Table
+        header3 = Paragraph("Population")
+        header4 = Paragraph("Table of Population, Population Density, and their respective world ranking for that year, ordered by year:")
+        elements.append(header3)
+        elements.append(header4)
 
 
-        #Get the query
+        #Find the population density of each country for each year
+        CountriesAndDensities = {}
+        areas = {}
+
+        for table in tables:
+            if table.get_name() == "Area":
+                df = table.get_table_as_pd_df()
+                for i in range(len(df)):
+                    areas[df.iloc[i]['Country Name']] = df.iloc[i]['Area']
+
+        for table in tables:
+            if table.get_name() == "Populations":
+                populationsDf = table.get_table_as_pd_df()
+                years = list(populationsDf.columns)   #Get all the years
+                years.sort()
+                years.pop(-1)
+                years.pop(-1)
+
+                for i in range(len(populationsDf.index)):   #Loop through each country
+                    densities = {}
+                    for year in years:  #Loop through each year
+                        a = populationsDf[year][i]
+                        b = areas[populationsDf['Country'][i]]
+
+                        if a == None or b == None:
+                            densities[year] = 0
+                            #densities.append(0)
+                        else:
+                            densities[year] = int(populationsDf[year][i]) / int(areas[populationsDf['Country'][i]])
+                            #densities.append( int(populationsDf[year][i]) / int(areas[populationsDf['Country'][i]]))
+
+                    CountriesAndDensities[populationsDf['Country'][i]] = densities
+
+
+        # --- Build out the table for the population ---
+        for table in tables:
+            if table.get_name() == "Population":
+                df = table.get_table_as_pd_df()
+
+                newDf = pd.DataFrame(columns=['Year', 'Population', 'Population Rank', 'Population Density (ppl/sq km)', 'Density Rank'])
+
+                #Add in all the years as columns
+                years = df.columns[1:]
+                populations = []
+                for year in years:
+                    populations.append(df.loc[df['Country Name'] == countryName, year].iloc[0])
+
+
+                #Population density
+                densities = []
+                for i in range(len(populations)):
+                    densities.append(populations[i]/area)
+
+                #Get the population ranks
+                populationRanks = []
+                for i in range(len(populations)):
+                    populationRanks.append(df[years[i]].rank(ascending=False)[df['Country Name'] == countryName].iloc[0])
+
+                #Get the density ranks
+                densityRanks = []
+                for i in range(len(densities)):
+                    densityRanks.append(df[years[i]].rank(ascending=False)[df['Country Name'] == countryName].iloc[0])
+
+
+
+
+        doc.build(elements)

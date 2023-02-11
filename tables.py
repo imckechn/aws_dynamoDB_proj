@@ -206,10 +206,11 @@ class Table:
             return
 
         header = rows[0].keys()
-        df = pd.DataFrame(columns=header)
+        # df = pd.DataFrame(columns=header)
 
-        for row in rows:
-            df = df.append(row, ignore_index=True)
+        # for row in rows:
+        #     df = df.append(row, ignore_index=True)
+        df = pd.DataFrame(rows, columns = header)
 
         return df
 
