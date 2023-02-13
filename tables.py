@@ -90,6 +90,10 @@ class Table:
         try:
             records = json.loads(pd.read_csv(csv_file_name).to_json(orient='records'))
 
+            #Make all null values into empty strings and Zeros
+            print("Records: ", records)
+
+
             self.column_headers = records[0].keys()
 
             for record in records:

@@ -324,43 +324,122 @@ while(True):
 
                         if a == None or b == None:
                             densities[year] = 0
-                            #densities.append(0)
                         else:
                             densities[year] = int(populationsDf[year][i]) / int(areas[populationsDf['Country'][i]])
-                            #densities.append( int(populationsDf[year][i]) / int(areas[populationsDf['Country'][i]]))
 
                     CountriesAndDensities[populationsDf['Country'][i]] = densities
+
+        #print(CountriesAndDensities)
 
 
         # --- Build out the table for the population ---
         for table in tables:
-            if table.get_name() == "Population":
+            if table.get_name() == "Populations":
+                print("Here")
                 df = table.get_table_as_pd_df()
 
-                newDf = pd.DataFrame(columns=['Year', 'Population', 'Population Rank', 'Population Density (ppl/sq km)', 'Density Rank'])
-
                 #Add in all the years as columns
-                years = df.columns[1:]
-                populations = []
+                years = df.columns.sort_values()
                 for year in years:
-                    populations.append(df.loc[df['Country Name'] == countryName, year].iloc[0])
+                    if not year.isdigit():
+                        years = years.drop(year)
+
+                populations = []
+                print("Years = ", years)
+                for year in years:
+                    value = str(df.loc[df['Country'] == countryName, year].iloc[0])
+                    if value != None and value.isdigit():
+                        populations.append(int(value))
 
 
                 #Population density
                 densities = []
                 for i in range(len(populations)):
-                    densities.append(populations[i]/area)
+                    densities.append(int(populations[i])/int(area))
 
                 #Get the population ranks
                 populationRanks = []
                 for i in range(len(populations)):
-                    populationRanks.append(df[years[i]].rank(ascending=False)[df['Country Name'] == countryName].iloc[0])
+                    populationRanks.append(df[years[i]].rank(ascending=False)[df['Country'] == countryName].iloc[0])
 
                 #Get the density ranks
                 densityRanks = []
-                for i in range(len(densities)):
-                    densityRanks.append(df[years[i]].rank(ascending=False)[df['Country Name'] == countryName].iloc[0])
+                places = {}
 
+                years = years.tolist()
+
+                difference = len(years) - len(densities)
+
+                for i in range(len(years) - difference):    #Take into account years that have null values
+                    year = years[i]
+                    allDensities = [densities[i]]
+                    #Add every countries population density for that year
+                    for country in CountriesAndDensities.keys():
+                        allDensities.append(CountriesAndDensities[country][year])
+
+                    #Sort the densities from largest to smallest, save the position of the given country
+                    allDensities.sort(reverse=True)
+                    places[year] = allDensities.index(densities[years.index(year)]) + 1
+
+                #Create the table that will be shown to the user
+                newDf = pd.DataFrame(columns=['Year', 'Population', 'Population Rank', 'Population Density (ppl/sq km)', 'Density Rank'])
+
+                lenOfValidValues = len(populations)
+                newDf['Year'] = years[:lenOfValidValues]
+                newDf['Population'] = populations
+                newDf['Population Rank'] = populationRanks[:lenOfValidValues]
+                newDf['Population Density (ppl/sq km)'] = densities[:lenOfValidValues]
+                newDf['Density Rank'] = list(places.values())[:lenOfValidValues]
+
+
+        #Add in headers
+        # Make heading for each column
+        column1Heading = Paragraph("<para align=center>Year</para>")
+        column2Heading = Paragraph("<para align=center>Population</para>")
+        column3Heading = Paragraph("<para align=center>Population Rank</para>")
+        column4Heading = Paragraph("<para align=center>Population Density (ppl/sq km)</para>")
+        column5Heading = Paragraph("<para align=center>Density Rank</para>")
+        row_array = [column1Heading, column2Heading, column3Heading, column4Heading, column5Heading]
+        tableHeading = [row_array]
+
+        #t2 = Tbl(tableHeading, newDf.values.tolist())
+        t2 = Tbl(tableHeading + newDf.values.tolist())
+        t2.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, (0, 0, 0)),
+                                        ('BOX', (0, 0), (-1, -1), 0.25, (0, 0, 0))]))
+
+        elements.append(t2)
+
+
+
+        #Now build the economics Tbale
+        header5 = Paragraph("Economics")
+
+        for table in tables:
+            if table.get_name() == "Population":
+                df = table.get_table_as_pd_df()
+
+                #Get the row with the country name
+                row = df.loc[df['Country'] == countryName]
+                currency = row['Currency'].iloc[0]
+                header6 = Paragraph("Currency: " + currency)
+
+
+        header7 = Paragraph("Table of GDP per capita (GDPCC) <from earliest year to latest year> and rank within the world for that year")
+
+        elements.append(header5)
+        elements.append(header6)
+        elements.append(header7)
+
+        #Years is already done
+        #Get the GDP per capita for each year
+
+        GDPs = []
+        for table in tables:
+            if table.get_name() == "GDP":
+                df = table.get_table_as_pd_df()
+                for year in years:
+                    GDPs.append(df.loc[df['Country'] == countryName, year].iloc[0])
+        #for year in years:
 
 
 
