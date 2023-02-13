@@ -392,8 +392,7 @@ while(True):
                 newDf['Density Rank'] = list(places.values())[:lenOfValidValues]
 
 
-        #Add in headers
-        # Make heading for each column
+        #Create headers
         column1Heading = Paragraph("<para align=center>Year</para>")
         column2Heading = Paragraph("<para align=center>Population</para>")
         column3Heading = Paragraph("<para align=center>Population Rank</para>")
@@ -402,17 +401,18 @@ while(True):
         row_array = [column1Heading, column2Heading, column3Heading, column4Heading, column5Heading]
         tableHeading = [row_array]
 
-        #t2 = Tbl(tableHeading, newDf.values.tolist())
+
         t2 = Tbl(tableHeading + newDf.values.tolist())
         t2.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, (0, 0, 0)),
                                         ('BOX', (0, 0), (-1, -1), 0.25, (0, 0, 0))]))
 
         elements.append(t2)
 
-
-
         #Now build the economics Tbale
         header5 = Paragraph("Economics")
+        elements.append(header5)
+        currency = ""
+        header6 = None
 
         for table in tables:
             if table.get_name() == "Population":
@@ -422,25 +422,58 @@ while(True):
                 row = df.loc[df['Country'] == countryName]
                 currency = row['Currency'].iloc[0]
                 header6 = Paragraph("Currency: " + currency)
+                elements.append(header6)
 
 
         header7 = Paragraph("Table of GDP per capita (GDPCC) <from earliest year to latest year> and rank within the world for that year")
-
-        elements.append(header5)
-        elements.append(header6)
         elements.append(header7)
 
         #Years is already done
         #Get the GDP per capita for each year
 
+        #Create the table that will be shown to the user
+        economicsDf = pd.DataFrame(columns=['Year', 'GDPPC', 'Ranks'])
         GDPs = []
+        df = None
+        gdpRank = []
         for table in tables:
-            if table.get_name() == "GDP":
+            if table.get_name() == "gdppc":
                 df = table.get_table_as_pd_df()
-                for year in years:
+
+                print("df = ", df)
+
+                for i in range(len(years)):
+                    year = years[i]
                     GDPs.append(df.loc[df['Country'] == countryName, year].iloc[0])
-        #for year in years:
+                    ranks = []
+                    for country in df['Country']:
+                        ranks.append(df.loc[df['Country'] == country, year].iloc[0])
 
+                    ranks.sort(reverse=True)
+                    gdpRank.append( ranks.index(GDPs[i]) + 1 )
 
+                print("len(years) = ", len(years))
+                print("Years = ", years)
+                print("len(GDPs) = ", len(GDPs))
+                print("GDPs = ", GDPs)
+                print("len(gdpRank) = ", len(gdpRank))
+                print("Ranks = ", gdpRank)
+
+                economicsDf['Year'] = years
+                economicsDf['GDPPC'] = GDPs
+                economicsDf['Ranks'] = gdpRank
+
+        # Create Headers
+        column1Heading = Paragraph("<para align=center>Year</para>")
+        column2Heading = Paragraph("<para align=center>GDPPC</para>")
+        column3Heading = Paragraph("<para align=center>Rank</para>")
+        row_array = [column1Heading, column2Heading, column3Heading]
+        tableHeading = [row_array]
+
+        t3 = Tbl(tableHeading + economicsDf.values.tolist())
+        t3.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, (0, 0, 0)),
+                                        ('BOX', (0, 0), (-1, -1), 0.25, (0, 0, 0))]))
+
+        elements.append(t3)
 
         doc.build(elements)

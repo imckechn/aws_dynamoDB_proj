@@ -91,7 +91,13 @@ class Table:
             records = json.loads(pd.read_csv(csv_file_name).to_json(orient='records'))
 
             #Make all null values into empty strings and Zeros
-            print("Records: ", records)
+            for record in records:
+                for key in record:
+                    if record[key] == None:
+                        if key.isdigit():
+                            record[key] = 0
+                        else:
+                            record[key] = ""
 
 
             self.column_headers = records[0].keys()
