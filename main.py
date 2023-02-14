@@ -251,10 +251,11 @@ while(True):
             print("Failed to find a table with that name")
 
     elif command[:len("A")] == "A":
+
         elements = []
         countryName = input("Country name? ")
 
-        doc = SimpleDocTemplate("pdfs/" + "hello.pdf")
+        doc = SimpleDocTemplate("pdfs/" + "TableA.pdf")
         header1 = Paragraph("Name of Country")
         header2 = Paragraph(countryName)
         elements.append(header1)
@@ -328,9 +329,6 @@ while(True):
                             densities[year] = int(populationsDf[year][i]) / int(areas[populationsDf['Country'][i]])
 
                     CountriesAndDensities[populationsDf['Country'][i]] = densities
-
-        #print(CountriesAndDensities)
-
 
         # --- Build out the table for the population ---
         for table in tables:
@@ -477,3 +475,129 @@ while(True):
         elements.append(t3)
 
         doc.build(elements)
+
+    elif command[:len("b")] == 'b':
+        elements = []
+        doc = SimpleDocTemplate("pdfs/" + "TableB.pdf")
+
+        #Create the header
+        requestedYear = input("For which year would you like it for? ")
+
+        header1 = Paragraph("Global")
+        header2 = Paragraph("Year" + requestedYear)
+        elements.append(header1)
+        elements.append(header2)
+
+
+        #Get the areas
+        areas = None
+        capitals = None
+        curpop = None
+        gdppc = None
+        languages = None
+        unData = None
+        numCountries = 0
+        countries = []
+        for table in tables:
+            print("")
+            if table.get_name() == "Populations":
+                curpop = table.get_table_as_pd_df()
+                if len(curpop.index) > numCountries:
+                    numCountries = len(curpop.index)
+                    countries = curpop['Country'].tolist()
+
+            elif table.get_name() == "gdppc":
+                gdppc = table.get_table_as_pd_df()
+                if len(gdppc.index) > numCountries:
+                    numCountries = len(gdppc.index)
+                    countries = curpop['Country'].tolist()
+
+            elif table.get_name() == "languages":
+                languages = table.get_table_as_pd_df()
+                if len(languages.index) > numCountries:
+                    numCountries = len(languages.index)
+                    countries = curpop['Country'].tolist()
+
+            elif table.get_name() == "areas":
+                areas = table.get_table_as_pd_df()
+                if len(areas.index) > numCountries:
+                    numCountries = len(areas.index)
+                    countries = curpop['Country'].tolist()
+
+            elif table.get_name() == "capitals":
+                capitals = table.get_table_as_pd_df()
+                if len(capitals.index) > numCountries:
+                    numCountries = len(capitals.index)
+                    countries = curpop['Country'].tolist()
+
+            elif table.get_name() == "unData":
+                unData = table.get_table_as_pd_df()
+                if len(unData.index) > numCountries:
+                    numCountries = len(unData.index)
+                    countries = curpop['Country'].tolist()
+
+        #Sort each table by the requested year
+        areas = areas.sort_values(by=['Area'], ascending=False)
+
+        #Get all the countries populations for that year
+        populations = {}
+        for country in countries:
+            populations[country] = int(curpop.loc[curpop['Country'] == country, requestedYear].iloc[0])
+
+        #sort largest to smallest
+        populations = sorted(populations.items(), key=lambda x: x[1], reverse=True)
+
+        print(populations)
+        populationsTable = []
+        for i in range(len(populations)):
+            populationsTable.append([populations[i][0], populations[i][1], i + 1])
+
+        #Create the table that will be shown to the user
+        # Create Headers
+        column1Heading = Paragraph("<para align=center>Country Name</para>")
+        column2Heading = Paragraph("<para align=center>Population</para>")
+        column3Heading = Paragraph("<para align=center>Rank</para>")
+        row_array = [column1Heading, column2Heading, column3Heading]
+        tableHeading = [row_array]
+        t1 = Tbl(tableHeading + populationsTable)
+        t1.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, (0, 0, 0)),
+                                        ('BOX', (0, 0), (-1, -1), 0.25, (0, 0, 0))]))
+        elements.append(t1)
+
+
+        #Now rank the countries by area
+        areas = areas.sort_values(by=['Area'], ascending=False)
+
+        areasTable = []
+        for i in range(len(areas)):
+            areasTable.append([areas.iloc[i]['Country'], areas.iloc[i]['Area'], i + 1])
+
+        column1Heading = Paragraph("<para align=center>Country Name</para>")
+        column2Heading = Paragraph("<para align=center>Area (sq km)</para>")
+        column3Heading = Paragraph("<para align=center>Rank</para>")
+        row_array = [column1Heading, column2Heading, column3Heading]
+        tableHeading = [row_array]
+        t2 = Tbl(tableHeading + populationsTable)
+        t2.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, (0, 0, 0)),
+                                        ('BOX', (0, 0), (-1, -1), 0.25, (0, 0, 0))]))
+
+        header3 = Paragraph("Table of Countries Ranked by Area (Largest to smallest)" + requestedYear)
+        elements.append(header3)
+        elements.append(t2)
+
+        #Now rank the countries by population density
+
+        print(type(populationsTable))
+        print(type(areas))
+
+        print(populationsTable)
+
+        populationDensity = populationsTable
+        for country in countries:
+            a = int(populationDensity[country][1])
+            b = int(areas.loc[areas['Country'] == country]['Area'].iloc[0])
+            populationDensity[country][1] = a/b
+
+        doc.build(elements)
+
+
