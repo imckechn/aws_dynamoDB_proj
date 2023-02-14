@@ -261,9 +261,9 @@ while(True):
 
         #Get the area of the country
         for table in tables:
-            if table.get_name() == "Area":
+            if table.get_name() == "area":
                 df = table.get_table_as_pd_df()
-                area = df.loc[df['Country Name'] == countryName, "Area"].iloc[0]
+                area = df.loc[df['Country'] == countryName, "Area"].iloc[0]
                 break
 
         # Get the Official Languages of the country
@@ -271,7 +271,7 @@ while(True):
             for table in tables:
                 if table.get_name() == "capitals":
                     df = table.get_table_as_pd_df()
-                    capital = df.loc[df['Country Name'] == countryName, "Capital"].iloc[0]
+                    capital = df.loc[df['Country'] == countryName, "Capital"].iloc[0]
                     break
         except:
             print("Country not found, please try again")
@@ -279,9 +279,9 @@ while(True):
 
         # Get the Capital of the country
         for table in tables:
-            if table.get_name() == "official_languages":
+            if table.get_name() == "languages":
                 df = table.get_table_as_pd_df()
-                languages = df.loc[df['Country Name'] == countryName, "Languages"].iloc[0]
+                languages = df.loc[df['Country'] == countryName, "Languages"].iloc[0]
                 break
 
         title = [["Area: " + str(area) + " sq km"],
@@ -305,13 +305,13 @@ while(True):
         areas = {}
 
         for table in tables:
-            if table.get_name() == "Area":
+            if table.get_name() == "area":
                 df = table.get_table_as_pd_df()
                 for i in range(len(df)):
-                    areas[df.iloc[i]['Country Name']] = df.iloc[i]['Area']
+                    areas[df.iloc[i]['Country']] = df.iloc[i]['Area']
 
         for table in tables:
-            if table.get_name() == "Populations":
+            if table.get_name() == "population":
                 populationsDf = table.get_table_as_pd_df()
                 years = list(populationsDf.columns)   #Get all the years
                 years.sort()
@@ -333,7 +333,7 @@ while(True):
 
         # --- Build out the table for the population ---
         for table in tables:
-            if table.get_name() == "Populations":
+            if table.get_name() == "population":
                 df = table.get_table_as_pd_df()
 
                 #Add in all the years as columns
@@ -412,7 +412,7 @@ while(True):
         header6 = None
 
         for table in tables:
-            if table.get_name() == "Population":
+            if table.get_name() == "population":
                 df = table.get_table_as_pd_df()
 
                 #Get the row with the country name
@@ -487,7 +487,7 @@ while(True):
         numCountries = 0
         countries = []
         for table in tables:
-            if table.get_name() == "Populations":
+            if table.get_name() == "population":
                 curpop = table.get_table_as_pd_df()
                 if len(curpop.index) > numCountries:
                     numCountries = len(curpop.index)
@@ -497,31 +497,31 @@ while(True):
                 gdppc = table.get_table_as_pd_df()
                 if len(gdppc.index) > numCountries:
                     numCountries = len(gdppc.index)
-                    countries = curpop['Country'].tolist()
+                    countries = gdppc['Country'].tolist()
 
             elif table.get_name() == "languages":
                 languages = table.get_table_as_pd_df()
                 if len(languages.index) > numCountries:
                     numCountries = len(languages.index)
-                    countries = curpop['Country'].tolist()
+                    countries = languages['Country'].tolist()
 
-            elif table.get_name() == "areas":
+            elif table.get_name() == "area":
                 areas = table.get_table_as_pd_df()
                 if len(areas.index) > numCountries:
                     numCountries = len(areas.index)
-                    countries = curpop['Country'].tolist()
+                    countries = areas['Country'].tolist()
 
             elif table.get_name() == "capitals":
                 capitals = table.get_table_as_pd_df()
                 if len(capitals.index) > numCountries:
                     numCountries = len(capitals.index)
-                    countries = curpop['Country'].tolist()
+                    countries = capitals['Country'].tolist()
 
-            elif table.get_name() == "unData":
+            elif table.get_name() == "unitedNations":
                 unData = table.get_table_as_pd_df()
                 if len(unData.index) > numCountries:
                     numCountries = len(unData.index)
-                    countries = curpop['Country'].tolist()
+                    countries = unData['Country'].tolist()
 
         elements.append(Paragraph("Number of Countries: " + str(numCountries)))
 

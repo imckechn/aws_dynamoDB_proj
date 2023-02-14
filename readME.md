@@ -17,7 +17,8 @@ Program then builds two pdfs giving the user details on a country or a specific 
 aws_access_key_id = XXXXX
 aws_secret_access_key = XXXXXX
 ```
-5. Run the program using ```python3 main.py```
+5. Make sure you have a folder called 'pdfs' in the same directory as the program
+6. Run the program using ```python3 main.py```
 
 ## Usage
 To build the pdfs run the following commands:
