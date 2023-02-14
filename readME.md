@@ -63,13 +63,13 @@ languages
 csvData/languages.csv
 
 create
-un
+unitedNations
 ISO3
 String
 Country
 String
 bulkload
-un
+unitedNations
 csvData/un.csv
 
 create

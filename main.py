@@ -241,9 +241,6 @@ while(True):
                     else:
                         new_value = str(new_value)
 
-                    #df.at[row, column] = new_value
-                    print("New value = ", df.iloc[row][column])
-
                     #update the table
                     table.update_table_from_pd_df(df, row, column, new_value)
 
@@ -270,11 +267,15 @@ while(True):
                 break
 
         # Get the Official Languages of the country
-        for table in tables:
-            if table.get_name() == "capitals":
-                df = table.get_table_as_pd_df()
-                capital = df.loc[df['Country Name'] == countryName, "Capital"].iloc[0]
-                break
+        try:
+            for table in tables:
+                if table.get_name() == "capitals":
+                    df = table.get_table_as_pd_df()
+                    capital = df.loc[df['Country Name'] == countryName, "Capital"].iloc[0]
+                    break
+        except:
+            print("Country not found, please try again")
+            continue
 
         # Get the Capital of the country
         for table in tables:
@@ -333,7 +334,6 @@ while(True):
         # --- Build out the table for the population ---
         for table in tables:
             if table.get_name() == "Populations":
-                print("Here")
                 df = table.get_table_as_pd_df()
 
                 #Add in all the years as columns
@@ -343,7 +343,6 @@ while(True):
                         years = years.drop(year)
 
                 populations = []
-                print("Years = ", years)
                 for year in years:
                     value = str(df.loc[df['Country'] == countryName, year].iloc[0])
                     if value != None and value.isdigit():
@@ -438,8 +437,6 @@ while(True):
             if table.get_name() == "gdppc":
                 df = table.get_table_as_pd_df()
 
-                print("df = ", df)
-
                 for i in range(len(years)):
                     year = years[i]
                     GDPs.append(df.loc[df['Country'] == countryName, year].iloc[0])
@@ -449,13 +446,6 @@ while(True):
 
                     ranks.sort(reverse=True)
                     gdpRank.append( ranks.index(GDPs[i]) + 1 )
-
-                print("len(years) = ", len(years))
-                print("Years = ", years)
-                print("len(GDPs) = ", len(GDPs))
-                print("GDPs = ", GDPs)
-                print("len(gdpRank) = ", len(gdpRank))
-                print("Ranks = ", gdpRank)
 
                 economicsDf['Year'] = years
                 economicsDf['GDPPC'] = GDPs
@@ -483,10 +473,8 @@ while(True):
         #Create the header
         requestedYear = input("For which year would you like it for? ")
 
-        header1 = Paragraph("Global")
-        header2 = Paragraph("Year" + requestedYear)
-        elements.append(header1)
-        elements.append(header2)
+        elements.append(Paragraph("Global Report"))
+        elements.append(Paragraph("Year: " + requestedYear))
 
 
         #Get the areas
@@ -499,7 +487,6 @@ while(True):
         numCountries = 0
         countries = []
         for table in tables:
-            print("")
             if table.get_name() == "Populations":
                 curpop = table.get_table_as_pd_df()
                 if len(curpop.index) > numCountries:
@@ -536,18 +523,23 @@ while(True):
                     numCountries = len(unData.index)
                     countries = curpop['Country'].tolist()
 
+        elements.append(Paragraph("Number of Countries: " + str(numCountries)))
+
         #Sort each table by the requested year
         areas = areas.sort_values(by=['Area'], ascending=False)
 
         #Get all the countries populations for that year
         populations = {}
-        for country in countries:
-            populations[country] = int(curpop.loc[curpop['Country'] == country, requestedYear].iloc[0])
+        try:
+            for country in countries:
+                populations[country] = int(curpop.loc[curpop['Country'] == country, requestedYear].iloc[0])
+        except:
+            print("Invalid year")
+            continue
 
         #sort largest to smallest
         populations = sorted(populations.items(), key=lambda x: x[1], reverse=True)
 
-        print(populations)
         populationsTable = []
         for i in range(len(populations)):
             populationsTable.append([populations[i][0], populations[i][1], i + 1])
@@ -577,7 +569,7 @@ while(True):
         column3Heading = Paragraph("<para align=center>Rank</para>")
         row_array = [column1Heading, column2Heading, column3Heading]
         tableHeading = [row_array]
-        t2 = Tbl(tableHeading + populationsTable)
+        t2 = Tbl(tableHeading + areasTable)
         t2.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, (0, 0, 0)),
                                         ('BOX', (0, 0), (-1, -1), 0.25, (0, 0, 0))]))
 
@@ -586,17 +578,269 @@ while(True):
         elements.append(t2)
 
         #Now rank the countries by population density
+        populationsDictionary = {}
+        for row in populationsTable:
+            populationsDictionary[row[0]] = row[1]
 
-        print(type(populationsTable))
-        print(type(areas))
-
-        print(populationsTable)
-
-        populationDensity = populationsTable
+        populationDensity = {}
         for country in countries:
-            a = int(populationDensity[country][1])
+            a = int(populationsDictionary[country])
             b = int(areas.loc[areas['Country'] == country]['Area'].iloc[0])
-            populationDensity[country][1] = a/b
+            populationDensity[country] = round(a/b, 2)
+
+        populationDensity = sorted(populationDensity.items(), key=lambda x: x[1], reverse=True)
+
+        densityTable = []
+        for i in range(len(populationDensity)):
+            densityTable.append([populationDensity[i][0], populationDensity[i][1], i + 1])
+
+        header3 = Paragraph("Table of Countries Ranked by Density (Largest to smallest)")
+        elements.append(header3)
+
+        column1Heading = Paragraph("<para align=center>Country Name</para>")
+        column2Heading = Paragraph("<para align=center>Density (People / sq km)</para>")
+        column3Heading = Paragraph("<para align=center>Rank</para>")
+        row_array = [column1Heading, column2Heading, column3Heading]
+        tableHeading = [row_array]
+        t3 = Tbl(tableHeading + densityTable)
+        t3.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, (0, 0, 0)),
+                                        ('BOX', (0, 0), (-1, -1), 0.25, (0, 0, 0))]))
+
+        elements.append(t3)
+        elements.append(Paragraph("GDP Per Capita for all Countries!"))
+
+        #GDP per capital for each country for each year in the 70s
+        columns = gdppc.columns.tolist()
+        years = []
+        for column in columns:
+            if column.isdigit():
+                if int(column) < 1980:
+                    years.append(column)
+
+        years.sort()
+        seventies = pd.DataFrame([['Country'] + years])
+
+        for country in countries:
+            gdps = []
+            for year in years:
+                if int(gdppc.loc[gdppc['Country'] == country][year].iloc[0]) > 0:
+                    gdps.append(int(gdppc.loc[gdppc['Country'] == country][year].iloc[0]))
+                else:
+                    gdps.append("No Data")
+
+            gdps = [country] + gdps
+
+            seventies.loc[len(seventies)] = gdps
+
+        header4 = Paragraph("1970's Table")
+        elements.append(header4)
+
+        column1Heading = Paragraph("<para align=center>Country Name</para>")
+        column2Heading = Paragraph("<para align=center>1970</para>")
+        column3Heading = Paragraph("<para align=center>1971</para>")
+        column4Heading = Paragraph("<para align=center>1972</para>")
+        column5Heading = Paragraph("<para align=center>1973</para>")
+        column6Heading = Paragraph("<para align=center>1974</para>")
+        column7Heading = Paragraph("<para align=center>1975</para>")
+        column8Heading = Paragraph("<para align=center>1976</para>")
+        column9Heading = Paragraph("<para align=center>1977</para>")
+        column10Heading = Paragraph("<para align=center>1978</para>")
+        column11Heading = Paragraph("<para align=center>1979</para>")
+        row_array = [column1Heading, column2Heading, column3Heading, column4Heading, column5Heading, column6Heading, column7Heading, column8Heading, column9Heading, column10Heading, column11Heading]
+        tableHeading = [row_array]
+        t4 = Tbl(tableHeading + seventies.values.tolist(), colWidths=[100, 50, 50,50, 50, 50,50, 50, 50,50 ])
+        t4.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, (0, 0, 0)),
+                                        ('FONT', (0, 0), (-1, -1), 'Helvetica', 5),
+                                        ('BOX', (0, 0), (-1, -1), 0.25, (0, 0, 0))]))
+
+        elements.append(t4)
+
+
+        #GDP per capital for each country for each year in the 80s
+        columns = gdppc.columns.tolist()
+        years = []
+        for column in columns:
+            if column.isdigit():
+                if int(column) < 1990 and int(column) > 1979:
+                    years.append(column)
+
+        years.sort()
+        eighties = pd.DataFrame([['Country'] + years])
+
+        for country in countries:
+            gdps = []
+            for year in years:
+                if int(gdppc.loc[gdppc['Country'] == country][year].iloc[0]) > 0:
+                    gdps.append(int(gdppc.loc[gdppc['Country'] == country][year].iloc[0]))
+                else:
+                    gdps.append("No Data")
+
+            gdps = [country] + gdps
+
+            eighties.loc[len(eighties)] = gdps
+
+        header5 = Paragraph("1980's Table")
+        elements.append(header5)
+
+        column1Heading = Paragraph("<para align=center>Country Name</para>")
+        column2Heading = Paragraph("<para align=center>1980</para>")
+        column3Heading = Paragraph("<para align=center>1981</para>")
+        column4Heading = Paragraph("<para align=center>1982</para>")
+        column5Heading = Paragraph("<para align=center>1983</para>")
+        column6Heading = Paragraph("<para align=center>1984</para>")
+        column7Heading = Paragraph("<para align=center>1985</para>")
+        column8Heading = Paragraph("<para align=center>1986</para>")
+        column9Heading = Paragraph("<para align=center>1987</para>")
+        column10Heading = Paragraph("<para align=center>1988</para>")
+        column11Heading = Paragraph("<para align=center>1989</para>")
+        row_array = [column1Heading, column2Heading, column3Heading, column4Heading, column5Heading, column6Heading, column7Heading, column8Heading, column9Heading, column10Heading, column11Heading]
+        tableHeading = [row_array]
+        t5 = Tbl(tableHeading + eighties.values.tolist(), colWidths=[100, 50, 50,50, 50, 50,50, 50, 50,50 ])
+        t5.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, (0, 0, 0)),
+                                        ('FONT', (0, 0), (-1, -1), 'Helvetica', 5),
+                                        ('BOX', (0, 0), (-1, -1), 0.25, (0, 0, 0))]))
+
+        elements.append(t5)
+
+
+        #GDP per capital for each country for each year in the 90s
+        columns = gdppc.columns.tolist()
+        years = []
+        for column in columns:
+            if column.isdigit():
+                if int(column) < 2000 and int(column) > 1989:
+                    years.append(column)
+
+        years.sort()
+        ninties = pd.DataFrame([['Country'] + years])
+
+        for country in countries:
+            gdps = []
+            for year in years:
+                if int(gdppc.loc[gdppc['Country'] == country][year].iloc[0]) > 0:
+                    gdps.append(int(gdppc.loc[gdppc['Country'] == country][year].iloc[0]))
+                else:
+                    gdps.append("No Data")
+
+            gdps = [country] + gdps
+            ninties.loc[len(ninties)] = gdps
+
+
+        header6 = Paragraph("1990's Table")
+        elements.append(header6)
+
+        column1Heading = Paragraph("<para align=center>Country Name</para>")
+        column2Heading = Paragraph("<para align=center>1990</para>")
+        column3Heading = Paragraph("<para align=center>1991</para>")
+        column4Heading = Paragraph("<para align=center>1992</para>")
+        column5Heading = Paragraph("<para align=center>1993</para>")
+        column6Heading = Paragraph("<para align=center>1994</para>")
+        column7Heading = Paragraph("<para align=center>1995</para>")
+        column8Heading = Paragraph("<para align=center>1996</para>")
+        column9Heading = Paragraph("<para align=center>1997</para>")
+        column10Heading = Paragraph("<para align=center>1998</para>")
+        column11Heading = Paragraph("<para align=center>1999</para>")
+        row_array = [column1Heading, column2Heading, column3Heading, column4Heading, column5Heading, column6Heading, column7Heading, column8Heading, column9Heading, column10Heading, column11Heading]
+        tableHeading = [row_array]
+        t6 = Tbl(tableHeading + ninties.values.tolist(), colWidths=[100, 50, 50,50, 50, 50,50, 50, 50,50 ])
+        t6.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, (0, 0, 0)),
+                                        ('FONT', (0, 0), (-1, -1), 'Helvetica', 5),
+                                        ('BOX', (0, 0), (-1, -1), 0.25, (0, 0, 0))]))
+
+        elements.append(t6)
+
+
+        #GDP per capital for each country for each year in the 00s
+        columns = gdppc.columns.tolist()
+        years = []
+        for column in columns:
+            if column.isdigit():
+                if int(column) < 2010 and int(column) > 1999:
+                    years.append(column)
+
+        years.sort()
+        twoThousands = pd.DataFrame([['Country'] + years])
+
+        for country in countries:
+            gdps = []
+            for year in years:
+                if int(gdppc.loc[gdppc['Country'] == country][year].iloc[0]) > 0:
+                    gdps.append(int(gdppc.loc[gdppc['Country'] == country][year].iloc[0]))
+                else:
+                    gdps.append("No Data")
+
+            gdps = [country] + gdps
+            twoThousands.loc[len(twoThousands)] = gdps
+
+        header7 = Paragraph("2000's Table")
+        elements.append(header7)
+
+        column1Heading = Paragraph("<para align=center>Country Name</para>")
+        column2Heading = Paragraph("<para align=center>2000</para>")
+        column3Heading = Paragraph("<para align=center>2001</para>")
+        column4Heading = Paragraph("<para align=center>2002</para>")
+        column5Heading = Paragraph("<para align=center>2003</para>")
+        column6Heading = Paragraph("<para align=center>2004</para>")
+        column7Heading = Paragraph("<para align=center>2005</para>")
+        column8Heading = Paragraph("<para align=center>2006</para>")
+        column9Heading = Paragraph("<para align=center>2007</para>")
+        column10Heading = Paragraph("<para align=center>2008</para>")
+        column11Heading = Paragraph("<para align=center>2009</para>")
+        row_array = [column1Heading, column2Heading, column3Heading, column4Heading, column5Heading, column6Heading, column7Heading, column8Heading, column9Heading, column10Heading, column11Heading]
+        tableHeading = [row_array]
+        t7 = Tbl(tableHeading + ninties.values.tolist(), colWidths=[100, 50, 50,50, 50, 50,50, 50, 50,50 ])
+        t7.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, (0, 0, 0)),
+                                        ('FONT', (0, 0), (-1, -1), 'Helvetica', 5),
+                                        ('BOX', (0, 0), (-1, -1), 0.25, (0, 0, 0))]))
+
+        elements.append(t7)
+
+
+        #GDP per capital for each country for each year in the 10s
+        columns = gdppc.columns.tolist()
+        years = []
+        for column in columns:
+            if column.isdigit():
+                if int(column) > 2009:
+                    years.append(column)
+
+        years.sort()
+        tens = pd.DataFrame([['Country'] + years])
+
+        for country in countries:
+            gdps = []
+            for year in years:
+                if int(gdppc.loc[gdppc['Country'] == country][year].iloc[0]) > 0:
+                    gdps.append(int(gdppc.loc[gdppc['Country'] == country][year].iloc[0]))
+                else:
+                    gdps.append("No Data")
+
+            gdps = [country] + gdps
+            tens.loc[len(tens)] = gdps
+
+
+        header8 = Paragraph("2010's Table")
+        elements.append(header8)
+
+        column1Heading = Paragraph("<para align=center>Country Name</para>")
+        column2Heading = Paragraph("<para align=center>2010</para>")
+        column3Heading = Paragraph("<para align=center>2011</para>")
+        column4Heading = Paragraph("<para align=center>2012</para>")
+        column5Heading = Paragraph("<para align=center>2013</para>")
+        column6Heading = Paragraph("<para align=center>2014</para>")
+        column7Heading = Paragraph("<para align=center>2015</para>")
+        column8Heading = Paragraph("<para align=center>2016</para>")
+        column9Heading = Paragraph("<para align=center>2017</para>")
+        column10Heading = Paragraph("<para align=center>2018</para>")
+        column11Heading = Paragraph("<para align=center>2019</para>")
+        row_array = [column1Heading, column2Heading, column3Heading, column4Heading, column5Heading, column6Heading, column7Heading, column8Heading, column9Heading, column10Heading, column11Heading]
+        tableHeading = [row_array]
+        t8 = Tbl(tableHeading + ninties.values.tolist(), colWidths=[100, 50, 50,50, 50, 50,50, 50, 50,50 ])
+        t8.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, (0, 0, 0)),
+                                        ('FONT', (0, 0), (-1, -1), 'Helvetica', 5),
+                                        ('BOX', (0, 0), (-1, -1), 0.25, (0, 0, 0))]))
+
+        elements.append(t8)
 
         doc.build(elements)
 
