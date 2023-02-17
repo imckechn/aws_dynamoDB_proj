@@ -243,7 +243,6 @@ while(True):
             print("Failed to find a table with that name")
 
     elif command[:len("tableA")] == "tableA":
-
         elements = []
         countryName = input("Country name? ")
 
@@ -458,7 +457,6 @@ while(True):
                                         ('BOX', (0, 0), (-1, -1), 0.25, (0, 0, 0))]))
 
         elements.append(t3)
-
         doc.build(elements)
 
     elif command[:len("tableB")] == 'tableB':
@@ -813,7 +811,6 @@ while(True):
             gdps = [country] + gdps
             tens.loc[len(tens)] = gdps
 
-
         header8 = Paragraph("2010's Table")
         elements.append(header8)
 
@@ -836,7 +833,4 @@ while(True):
                                         ('BOX', (0, 0), (-1, -1), 0.25, (0, 0, 0))]))
 
         elements.append(t8)
-
         doc.build(elements)
-
-
