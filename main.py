@@ -1,18 +1,11 @@
 import configparser
-import os
-import sys
-import pathlib
 import boto3
-import requests
 from tables import Table
 import pandas as pd
-import asyncio
-import reportlab
 from reportlab.pdfgen import canvas
 from reportlab.platypus import SimpleDocTemplate, TableStyle
 from reportlab.platypus import Table as Tbl
 from reportlab.platypus import Paragraph
-
 
 config = configparser.ConfigParser()
 config.read("dynamoDB.conf")
@@ -53,7 +46,7 @@ for tableName in existing_tables["TableNames"]:
 print()
 while(True):
     print("Please enter a command")
-    print("Commands: create, delete, print, print head, bulkload, exit, add row, delete row, update record")
+    print("Commands: create, delete, print, print head, bulkload, exit, add row, delete row, update record, tableA, tableB")
     print("Current Tables: ", end="")
     for table in tables:
         print(table.get_name(), end=" ")
@@ -84,7 +77,9 @@ while(True):
             continue
 
         table = Table(name)
-        success = table.create(client_res, attyA, attyAType, attyB, attyBType)
+        print("AttyA,  ", attyA, "  ", attyAType)
+        print("AttyB,  ", attyB, "  ", attyBType)
+        success = table.create(client, client_res, attyA, attyAType, attyB, attyBType)
 
         if success:
             tables.append(table)
@@ -247,7 +242,7 @@ while(True):
         if not nameFound:
             print("Failed to find a table with that name")
 
-    elif command[:len("A")] == "A":
+    elif command[:len("tableA")] == "tableA":
 
         elements = []
         countryName = input("Country name? ")
@@ -466,7 +461,7 @@ while(True):
 
         doc.build(elements)
 
-    elif command[:len("b")] == 'b':
+    elif command[:len("tableB")] == 'tableB':
         elements = []
         doc = SimpleDocTemplate("pdfs/" + "TableB.pdf")
 

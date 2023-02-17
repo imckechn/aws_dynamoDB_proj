@@ -3,9 +3,11 @@ import json
 import boto3
 import asyncio
 import os
+import boto3
+
+
 
 class Table:
-
     # The constructor
     # Just takes in the table name
     def __init__(self, name):
@@ -18,7 +20,7 @@ class Table:
     # attributeAKeyType: the key type of the first attribute
     # attributeB: the second attribute
     # attributeBKeyType: the key type of the second attribute
-    def create(self, dynamo, attributeA, attributeAKeyType, attributeB, attributeBKeyType):
+    def create(self, dynamo, client, attributeA, attributeAKeyType, attributeB, attributeBKeyType):
 
         try:
             self.table = dynamo.create_table(
@@ -48,6 +50,9 @@ class Table:
                     'WriteCapacityUnits': 10
                 }
             )
+
+            waiter = client.get_waiter('table_exists')
+            waiter.wait(TableName=self.name)
             print("Table Status: ", self.table.table_status, self.table.table_name)
             return True
         except Exception as e:
@@ -89,7 +94,6 @@ class Table:
     def bulk_load_csv(self, csv_file_name):
         try:
             records = json.loads(pd.read_csv(csv_file_name).to_json(orient='records'))
-
             #Make all null values into empty strings and Zeros
             for record in records:
                 for key in record:
@@ -98,7 +102,6 @@ class Table:
                             record[key] = 0
                         else:
                             record[key] = ""
-
 
             self.column_headers = records[0].keys()
 
