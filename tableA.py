@@ -53,16 +53,15 @@ header2 = Paragraph(countryName)
 elements.append(header1)
 elements.append(header2)
 
-
-#Get the area of the country
-for table in tables:
-    if table.get_name() == "area":
-        df = table.get_table_as_pd_df()
-        area = df.loc[df['Country'] == countryName, "Area"].iloc[0]
-        break
-
-# Get the Official Languages of the country
 try:
+    #Get the area of the country
+    for table in tables:
+        if table.get_name() == "area":
+            df = table.get_table_as_pd_df()
+            area = df.loc[df['Country'] == countryName, "Area"].iloc[0]
+            break
+
+    # Get the Official Languages of the country
     for table in tables:
         if table.get_name() == "capitals":
             df = table.get_table_as_pd_df()
@@ -89,7 +88,7 @@ t.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, (0, 0, 0)),
 elements.append(t)
 
 # Getting the Population Table
-header3 = Paragraph("Population")
+header3 = Paragraph("<br/><b>Population</b>")
 header4 = Paragraph("Table of Population, Population Density, and their respective world ranking for that year, ordered by year:")
 elements.append(header3)
 elements.append(header4)
@@ -201,7 +200,7 @@ t2.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, (0, 0, 0)),
 elements.append(t2)
 
 #Now build the economics Tbale
-header5 = Paragraph("Economics")
+header5 = Paragraph("<br/><b>Economics</b>")
 elements.append(header5)
 currency = ""
 header6 = None
@@ -258,4 +257,8 @@ t3.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, (0, 0, 0)),
                                 ('BOX', (0, 0), (-1, -1), 0.25, (0, 0, 0))]))
 
 elements.append(t3)
+
+#Final notes
+elements.append(Paragraph("<b>Notes</b>"))
+elements.append(Paragraph("- If there is no data for a given element, it will be represented by a zero"))
 doc.build(elements)

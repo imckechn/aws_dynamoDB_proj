@@ -49,9 +49,8 @@ doc = SimpleDocTemplate("pdfs/" + "TableB.pdf")
 #Create the header
 requestedYear = input("For which year would you like it for? ")
 
-elements.append(Paragraph("Global Report"))
-elements.append(Paragraph("Year: " + requestedYear))
-
+elements.append(Paragraph("<center><b>Global Report</b></center>"))
+elements.append(Paragraph("<b>Year: " + requestedYear + "</b>"))
 
 #Get the areas
 areas = None
@@ -100,6 +99,7 @@ for table in tables:
             countries = unData['Country'].tolist()
 
 elements.append(Paragraph("Number of Countries: " + str(numCountries)))
+elements.append(Paragraph("<br/><b>Table of Countries Ranked by Population</b> (largest to smallest)"))
 
 #Sort each table by the requested year
 areas = areas.sort_values(by=['Area'], ascending=False)
@@ -149,7 +149,7 @@ t2 = Tbl(tableHeading + areasTable)
 t2.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, (0, 0, 0)),
                                 ('BOX', (0, 0), (-1, -1), 0.25, (0, 0, 0))]))
 
-header3 = Paragraph("Table of Countries Ranked by Area (Largest to smallest)" + requestedYear)
+header3 = Paragraph("<br/><b>Table of Countries Ranked by Area</b> (Largest to smallest)")
 elements.append(header3)
 elements.append(t2)
 
@@ -170,7 +170,7 @@ densityTable = []
 for i in range(len(populationDensity)):
     densityTable.append([populationDensity[i][0], populationDensity[i][1], i + 1])
 
-header3 = Paragraph("Table of Countries Ranked by Density (Largest to smallest)")
+header3 = Paragraph("<br/><b>Table of Countries Ranked by Density</b> (Largest to smallest)")
 elements.append(header3)
 
 column1Heading = Paragraph("<para align=center>Country Name</para>")
@@ -183,7 +183,7 @@ t3.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, (0, 0, 0)),
                                 ('BOX', (0, 0), (-1, -1), 0.25, (0, 0, 0))]))
 
 elements.append(t3)
-elements.append(Paragraph("GDP Per Capita for all Countries!"))
+elements.append(Paragraph("<br/><b>GDP Per Capita for all Countries!</b>"))
 
 #GDP per capital for each country for each year in the 70s
 columns = gdppc.columns.tolist()
@@ -208,7 +208,7 @@ for country in countries:
 
     seventies.loc[len(seventies)] = gdps
 
-header4 = Paragraph("1970's Table")
+header4 = Paragraph("<b>1970's Table</b>")
 elements.append(header4)
 
 column1Heading = Paragraph("<para align=center>Country Name</para>")
@@ -255,7 +255,7 @@ for country in countries:
 
     eighties.loc[len(eighties)] = gdps
 
-header5 = Paragraph("1980's Table")
+header5 = Paragraph("<br/><b>1980's Table</b>")
 elements.append(header5)
 
 column1Heading = Paragraph("<para align=center>Country Name</para>")
@@ -302,7 +302,7 @@ for country in countries:
     ninties.loc[len(ninties)] = gdps
 
 
-header6 = Paragraph("1990's Table")
+header6 = Paragraph("<br/><b>1990's Table</b>")
 elements.append(header6)
 
 column1Heading = Paragraph("<para align=center>Country Name</para>")
@@ -348,7 +348,7 @@ for country in countries:
     gdps = [country] + gdps
     twoThousands.loc[len(twoThousands)] = gdps
 
-header7 = Paragraph("2000's Table")
+header7 = Paragraph("<br/><b>2000's Table</b>")
 elements.append(header7)
 
 column1Heading = Paragraph("<para align=center>Country Name</para>")
@@ -394,7 +394,7 @@ for country in countries:
     gdps = [country] + gdps
     tens.loc[len(tens)] = gdps
 
-header8 = Paragraph("2010's Table")
+header8 = Paragraph("<br/><b>2010's Table</b>")
 elements.append(header8)
 
 column1Heading = Paragraph("<para align=center>Country Name</para>")
